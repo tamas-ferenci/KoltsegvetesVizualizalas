@@ -137,7 +137,7 @@ ggplot(RawData[value>250*1e9],
   labs(title = "Magyarország 2022. évi költségvetése",
        caption = paste0("Adatvizualizáció: Ferenci Tamás, a 2022. évi költségvetésről szóló törvény ",
                         "alapján a K-Monitor (https://koltsegvetes.k-monitor.hu/) által összeállított ",
-                        "táblázat használatával.\n github")) +
+                        "táblázat használatával.\nhttps://github.com/tamas-ferenci/KoltsegvetesVizualizalas")) +
   theme(plot.title = element_text(hjust = 0.5),
         plot.caption = element_text(face = "bold", hjust = 0, size = 8))
 ggsave("MagyarKoltsegvetes2022.pdf", width = 16, height = 9, device = cairo_pdf)
