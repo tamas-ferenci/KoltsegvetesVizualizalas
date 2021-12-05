@@ -1,0 +1,153 @@
+---
+title: "A magyar költségvetés vizualizálása"
+author: "Ferenci Tamás"
+output: github_document
+---
+
+## Bevezető gondolatok
+
+Az állam központi költségvetésének összetétele, mind a bevételi, mind a kiadási oldalon, alapvetően határozza meg az állampolgárok életét. Éppen e miatt mindenkinek alapvető érdeke, hogy az állampolgárok a legpontosabb képet kapják arról, hogy országuk mire költi a pénzt, és ezt milyen bevételekből fedezi (annál is inkább, mert ezeket jórészt maguk az állampolgárok fizetik be).
+
+Magyarországon nem könnyű feladat a költségvetés számainak kigyűjtése; erről érdemes ezt a részletes -- és egyben elég sokkoló -- [tanulmányt](https://drive.google.com/file/d/1jFdVf9R1cPLt4F3IDmvDG6uOHtzo3pWX/view) elolvasni. Szerencsére a K-Monitor nevű civil szervezet, [nagyon komoly munkával](https://k.blog.hu/2021/12/02/a_koltsegvetesi_torveny_egy_mese_most_elmeseljuk), de összeállított egy gépi úton feldolgozható [adatbázist](https://koltsegvetes.k-monitor.hu/), ami már alkalmas számunkra adatvizualizáció céljára.
+
+## A 2022. évi magyar költségvetés vizualizálása
+
+A legcélszerűbb megoldás szerintem az ún. [Sankey-diagram](https://en.wikipedia.org/wiki/Sankey_diagram), ami jelen esetben annyira egyértelmű, hogy szinte magyarázatot sem igényel. Eredetileg mennyiségek áramlásának vizualizálására találták ki, de itt is kitűnően működik (a költségvetés csakugyan felfogható úgy, mint amibe beáramlanak a bevételek, és amiből kiáramlanak a kiadások).
+
+Az eredmény lent megtekinthető, de ilyen kis méretben nem igen látszik rajta semmi; célszerű nagy méretben megnézni, akár [PNG](MagyarKoltsegvetes2022.png), akár [PDF](MagyarKoltsegvetes2022.pdf) formátumban. A feltüntetett számok milliárd forintban értendőek. Hogy az ábra áttekinthető legyen, csak az 250 milliárd forintnál nagyobb tételek látszódnak.
+
+Íme az eredmény:
+
+```{r, echo = FALSE, fig.width = 16, fig.height = 9}
+library(data.table)
+library(ggplot2)
+
+kivag <- function(string, minta) {
+  if(length(minta)==1) substring(string, 1, 1+minta-1) else
+    substring(string, c(1, cumsum(minta)[1:(length(minta)-1)]+1),
+              c(1, cumsum(minta)[1:(length(minta)-1)]+1)+minta-1)
+}
+
+###
+
+RawDataBevetel <- fread("Bevetel.csv", dec = ",", check.names = TRUE)
+RawDataBevetel$Kod <- substring(stringr::str_extract(RawDataBevetel$Megnevezés,
+                                                     "(?<=\\()([^()]*?)(?=\\)[^()]*$)"), 2)
+szamjegyek <- 1
+Szint <- matrix(rep(NA, nrow(RawDataBevetel)*10), nc = 10)
+Szint[1, 1:length(kivag(RawDataBevetel$Kod[1], szamjegyek))] <- kivag(RawDataBevetel$Kod[1], szamjegyek)
+for(i in 2:nrow(RawDataBevetel)) {
+  if(nchar(RawDataBevetel$Kod[i])>nchar(RawDataBevetel$Kod[i-1]))
+    szamjegyek <- c(szamjegyek, nchar(RawDataBevetel$Kod[i])-nchar(RawDataBevetel$Kod[i-1])) else
+      if(nchar(RawDataBevetel$Kod[i])<nchar(RawDataBevetel$Kod[i-1]))
+        szamjegyek <- szamjegyek[1:which(cumsum(szamjegyek)==nchar(RawDataBevetel$Kod[i]))]
+      Szint[i, 1:length(kivag(RawDataBevetel$Kod[i], szamjegyek))] <- kivag(RawDataBevetel$Kod[i],
+                                                                            szamjegyek)
+}
+maxszint <- sum(apply(Szint, 2, function(x) sum(!is.na(x)))!=0)
+Szint <- Szint[, 1:maxszint]
+RawDataBevetel <- cbind(RawDataBevetel, setNames(as.data.frame(Szint), paste0("Szint", 1:maxszint)))
+RawDataBevetel$Szint <- apply(Szint, 1, function(x) sum(!is.na(x)))
+RawDataBevetel$RovidMegnev <- stringr::str_wrap(RawDataBevetel$Megnevezés, 40)
+RawDataBevetel$Szulo <- sapply(1:nrow(RawDataBevetel), function(i) if(RawDataBevetel$Szint[i]==1) NA else
+  paste0(RawDataBevetel[i, paste0("Szint", 1:(RawDataBevetel$Szint[i]-1)), with = FALSE], collapse = ""))
+RawDataBevetel <- merge(RawDataBevetel, RawDataBevetel[, .(Szulo = Kod, SzuloMegnevezes = RovidMegnev)],
+                        by = "Szulo", sort = FALSE, all.x = TRUE)
+
+###
+
+# Hibák:
+# K302010503 előtt dupla zárójel
+# K302 négyszer van
+# K30201 hiányzik
+# K304021004 előtt nincs zárójel
+
+# A sum(bevetel) nem teljesen egyezik a sum(kiadas)-sal (28546.4 vs 28550), ez lehet, hogy az eredeti
+# adatok hibája (kerekítés?)
+# Máshol sem egyezik tökéletesen, de az előbbit muszáj kézzel azonosra állítani, hogy az
+# ábra jó legyen
+
+RawDataKiadas <- fread("Kiadas.csv", dec = ",", check.names = TRUE)
+RawDataKiadas$Kod <- substring(stringr::str_extract(RawDataKiadas$Megnevezés,
+                                                    "(?<=\\()([^()]*?)(?=\\)[^()]*$)"), 2)
+szamjegyek <- 1
+Szint <- matrix(rep(NA, nrow(RawDataKiadas)*10), nc = 10)
+Szint[1, 1:length(kivag(RawDataKiadas$Kod[1], szamjegyek))] <- kivag(RawDataKiadas$Kod[1], szamjegyek)
+for(i in 2:nrow(RawDataKiadas)) {
+  if(nchar(RawDataKiadas$Kod[i])>nchar(RawDataKiadas$Kod[i-1]))
+    szamjegyek <- c(szamjegyek, nchar(RawDataKiadas$Kod[i])-nchar(RawDataKiadas$Kod[i-1])) else
+      if(nchar(RawDataKiadas$Kod[i])<nchar(RawDataKiadas$Kod[i-1]))
+        szamjegyek <- szamjegyek[1:which(cumsum(szamjegyek)==nchar(RawDataKiadas$Kod[i]))]
+      Szint[i, 1:length(kivag(RawDataKiadas$Kod[i], szamjegyek))] <- kivag(RawDataKiadas$Kod[i],
+                                                                           szamjegyek)
+}
+maxszint <- sum(apply(Szint, 2, function(x) sum(!is.na(x)))!=0)
+Szint <- Szint[, 1:maxszint]
+RawDataKiadas <- cbind(RawDataKiadas, setNames(as.data.frame(Szint), paste0("Szint", 1:maxszint)))
+RawDataKiadas$Szint <- apply(Szint, 1, function(x) sum(!is.na(x)))
+RawDataKiadas$RovidMegnev <- stringr::str_wrap(RawDataKiadas$Megnevezés, 40)
+RawDataKiadas$Szulo <- sapply(1:nrow(RawDataKiadas), function(i) if(RawDataKiadas$Szint[i]==1) NA else
+  paste0(RawDataKiadas[i, paste0("Szint", 1:(RawDataKiadas$Szint[i]-1)), with = FALSE], collapse = ""))
+RawDataKiadas <- merge(RawDataKiadas, RawDataKiadas[, .(Szulo = Kod, SzuloMegnevezes = RovidMegnev)],
+                       by = "Szulo", sort = FALSE, all.x = TRUE)
+RawDataKiadas$SzuloMegnevezes[is.na(RawDataKiadas$SzuloMegnevezes)] <- "Költségvetés"
+
+###
+
+RawData <- rbind(data.table(x = -RawDataBevetel$Szint,
+                            node = RawDataBevetel$RovidMegnev,
+                            next_x = -RawDataBevetel$Szint+1,
+                            next_node = ifelse(RawDataBevetel$Szint==1, "Költségvetés",
+                                               RawDataBevetel$SzuloMegnevezes),
+                            value = RawDataBevetel$Eredeti.előirányzat,
+                            total = RawDataBevetel$Eredeti.előirányzat),
+                 merge(RawDataKiadas[, .(x = Szint-1, node = SzuloMegnevezes, next_x = Szint,
+                                         next_node = RovidMegnev, value = Eredeti.előirányzat)],
+                       rbind(RawDataKiadas[, .(total = sum(Eredeti.előirányzat)), .(node = RovidMegnev)],
+                             data.table(total = sum(RawDataBevetel[Szint==1]$Eredeti.előirányzat),
+                                        node = "Költségvetés")), by = "node"))
+
+RawData <- RawData[value>250*1e9]
+
+RawData <- rbind(RawData, RawData[!next_node%in%RawData$node,
+                                  .(x = next_x, node = next_node, next_x = NA,
+                                    next_node = NA, value = value, total = value)])
+
+RawData <- RawData[order(stringr::str_extract(node, "(?<=\\()([^()]*?)(?=\\)[^()]*$)"))]
+RawData$node <- factor(RawData$node, levels = rev(unique(RawData$node)))
+RawData <- RawData[order(stringr::str_extract(next_node, "(?<=\\()([^()]*?)(?=\\)[^()]*$)"))]
+RawData$next_node <- factor(RawData$next_node, levels = rev(unique(RawData$next_node)))
+RawData$x <- as.factor(RawData$x)
+RawData$next_x <- factor(RawData$next_x, levels = levels(RawData$x))
+
+ggplot(RawData[value>250*1e9],
+       aes(x = x,
+           next_x = next_x,
+           node = node,
+           next_node = next_node,
+           fill = (node),
+           value = value/1e9,
+           label = paste0(node, " (", round(total/1e9, 0), ")")
+       ))   +
+  ggsankey::geom_sankey(flow.alpha = 0.3) +
+  ggsankey::geom_sankey_label(size = 1.5)  +
+  # scale_fill_brewer(palette = "Set3") +
+  theme_void(base_size = 18) +
+  theme(legend.position = "none") +
+  labs(title = "Magyarország 2022. évi költségvetése",
+       caption = paste0("Adatvizualizáció: Ferenci Tamás, a 2022. évi költségvetésről szóló törvény ",
+                        "alapján a K-Monitor (https://koltsegvetes.k-monitor.hu/) által összeállított ",
+                        "táblázat használatával.\n github")) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.caption = element_text(face = "bold", hjust = 0, size = 8))
+ggsave("MagyarKoltsegvetes2022.pdf", width = 16, height = 9, device = cairo_pdf)
+ggsave("MagyarKoltsegvetes2022.png", width = 16, height = 9)
+```
+
+## Technikai megjegyzések
+
+A K-Monitor által [elérhetővé tett](https://koltsegvetes.k-monitor.hu/budget.xlsx) Excel-fájl egyetlen komoly baja, hogy a hierarchia nincs szemantikusan jelölve; szerencsére a kódszám alapján ezt elég izzadságos munkával ugyan, de ki lehet találni.
+
+A vizualizációt [`R`](https://www.r-project.org/) nyelven, a [`ggsankey`](https://github.com/davidsjoberg/ggsankey) csomag használatával végeztem, ami a jól ismert [`ggplot2`](https://ggplot2.tidyverse.org/)-t egészíti ki.
+
+A vizualizációt megvalósító kódom
