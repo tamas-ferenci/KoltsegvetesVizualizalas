@@ -6,19 +6,27 @@ Ferenci Tamás
 
 Az állam központi költségvetésének összetétele, mind a bevételi, mind a
 kiadási oldalon, alapvetően határozza meg az állampolgárok életét. Éppen
-e miatt mindenkinek alapvető érdeke, hogy az állampolgárok a
-legpontosabb képet kapják arról, hogy országuk mire költi a pénzt, és
-ezt milyen bevételekből fedezi (annál is inkább, mert ezeket jórészt
-maguk az állampolgárok fizetik be).
+ezért mindenkinek elemi érdeke, és a külső kontroll jelentette
+visszacsatolás révén a jó kormányzásnak is alapja, hogy az
+állampolgárok, a sajtó, a kutatók a legpontosabb képet tudják kapni
+arról, hogy országuk mire költi a pénzt, és ezt milyen bevételekből
+fedezi. (Annál is inkább, mert ezeket jórészt maguk az állampolgárok
+fizetik be, úgyhogy eleve is helyesebb lett volna úgy fogalmazni, hogy
+mire költi a pénzüket.) Fontos, hogy mindez közérthető, bárki számára
+hozzáférhető, gyorsan áttekinthető formában is rendelkezésre álljon.
 
-Magyarországon nem könnyű feladat a költségvetés számainak kigyűjtése;
-erről érdemes ezt a részletes – és egyben elég sokkoló –
+Magyarország költségvetésről szóló nyilvános adatközlése ennek a
+szempontnak minimálisan felel meg, sőt, már a költségvetés számainak
+kigyűjtése sem könnyű feladat; erről érdemes ezt az olvasmányos,
+részletes – és egyben elég sokkoló –
 [tanulmányt](https://drive.google.com/file/d/1jFdVf9R1cPLt4F3IDmvDG6uOHtzo3pWX/view)
 elolvasni. Szerencsére a K-Monitor nevű civil szervezet, [nagyon komoly
 munkával](https://k.blog.hu/2021/12/02/a_koltsegvetesi_torveny_egy_mese_most_elmeseljuk),
 de összeállított egy gépi úton feldolgozható
-[adatbázist](https://koltsegvetes.k-monitor.hu/), ami már alkalmas
-számunkra adatvizualizáció céljára.
+[adatbázist](https://koltsegvetes.k-monitor.hu/). Ez alapján már
+tehetünk a fenti cél érdekében. Sokszor ilyenre a legjobb egy
+megfelelően választott adatvizualizáció, márpedig ezt lehetővé teszi a
+fenti adatbázis.
 
 ## A 2022. évi magyar költségvetés vizualizálása
 
@@ -55,4 +63,5 @@ A vizualizációt [`R`](https://www.r-project.org/) nyelven, a
 használatával végeztem, ami a jól ismert
 [`ggplot2`](https://ggplot2.tidyverse.org/)-t egészíti ki.
 
-A vizualizációt megvalósító kódom
+A vizualizációt megvalósító kódom bárki számára
+[elérhető](https://github.com/tamas-ferenci/KoltsegvetesVizualizalas/blob/main/README.Rmd).
