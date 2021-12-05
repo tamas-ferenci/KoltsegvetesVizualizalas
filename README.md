@@ -31,10 +31,12 @@ beáramlanak a bevételek, és amiből kiáramlanak a kiadások).
 
 Az eredmény lent megtekinthető, de ilyen kis méretben nem igen látszik
 rajta semmi; célszerű nagy méretben megnézni, akár
-[PNG](MagyarKoltsegvetes2022.png), akár
-[PDF](MagyarKoltsegvetes2022.pdf) formátumban. A feltüntetett számok
-milliárd forintban értendőek. Hogy az ábra áttekinthető legyen, csak az
-250 milliárd forintnál nagyobb tételek látszódnak.
+[PNG](https://github.com/tamas-ferenci/KoltsegvetesVizualizalas/raw/main/MagyarKoltsegvetes2022.png),
+akár
+[PDF](https://github.com/tamas-ferenci/KoltsegvetesVizualizalas/raw/main/MagyarKoltsegvetes2022.pdf)
+formátumban. A feltüntetett számok milliárd forintban értendőek. Hogy az
+ábra áttekinthető legyen, csak az 250 milliárd forintnál nagyobb tételek
+látszódnak.
 
 Íme az eredmény:
 
@@ -48,7 +50,9 @@ komoly baja, hogy a hierarchia nincs szemantikusan jelölve; szerencsére
 a kódszám alapján ezt elég izzadságos munkával ugyan, de ki lehet
 találni.
 
-A vizualizációt [R](https://www.r-project.org/) nyelven, a
+A vizualizációt [`R`](https://www.r-project.org/) nyelven, a
 [`ggsankey`](https://github.com/davidsjoberg/ggsankey) csomag
 használatával végeztem, ami a jól ismert
-`[ggplot2](https://ggplot2.tidyverse.org/)`-t egészíti ki.
+[`ggplot2`](https://ggplot2.tidyverse.org/)-t egészíti ki.
+
+A vizualizációt megvalósító kódom
