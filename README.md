@@ -46,9 +46,10 @@ formátumban. A feltüntetett számok milliárd forintban értendőek. Hogy az
 ábra áttekinthető legyen, csak az 250 milliárd forintnál nagyobb tételek
 látszódnak.
 
-Íme az eredmény:
+*Íme az eredmény részlete, rákattintva megnyílik nagyban* (PNG
+formátumban):
 
-![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+[<img src="MagyarKoltsegvetes2022kicsi.png">](https://github.com/tamas-ferenci/KoltsegvetesVizualizalas/raw/main/MagyarKoltsegvetes2022.png)
 
 ## Technikai megjegyzések
 
